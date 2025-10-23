@@ -24,7 +24,7 @@ def main():
     
     # 代理设置（可选）
     # 如果需要使用代理，取消下面的注释
-    USE_PROXY = True  # 改为 True 启用代理
+    USE_PROXY = False  # 改为 True 启用代理
     PROXY_URL = "http://127.0.0.1:61079"
     
     if USE_PROXY:
@@ -55,6 +55,7 @@ def main():
         print(f"  - {registered_icon} 已注册: {result['registered']}")
         print(f"  - 消息: {result['message']}")
         print(f"  - 时间戳: {result['timestamp']}")
+        print(f"  - 响应: {result['raw_response']}")
         print("-" * 60)
     
     print("\n测试完成！")

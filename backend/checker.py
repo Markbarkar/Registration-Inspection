@@ -207,6 +207,7 @@ class StirChecker:
             else:
                 result['message'] = f'检测出错: {str(e)}'
         
+        result['raw_response'] = response.text
         return result
     
     def _check_by_password_reset(self, email: str) -> bool:
