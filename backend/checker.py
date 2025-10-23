@@ -2,9 +2,11 @@
 Stir.com 注册检测核心逻辑
 """
 import cloudscraper
+import requests
 import time
 import re
 import os
+import random
 from typing import Dict, List, Optional
 
 # 清除可能干扰的环境变量代理设置
@@ -17,7 +19,20 @@ class StirChecker:
     """Stir.com 邮箱注册检测器"""
     
     def __init__(self):
-        # 使用 cloudscraper 绕过 Cloudflare 保护
+        self.proxy = None
+        self.proxy_pool = []  # 代理池
+        self.current_proxy_index = 0
+        self.check_count = 0  # 检测计数器
+        self.proxy_rotation_count = 30  # 每30个邮箱切换代理
+        
+        self.base_url = "https://stir.com"
+        self.api_url = "https://stir.com/reg/regapi/registration/verify"
+        
+        # 初始化 scraper
+        self._init_scraper()
+    
+    def _init_scraper(self):
+        """初始化或重新初始化 scraper"""
         self.scraper = cloudscraper.create_scraper(
             browser={
                 'browser': 'chrome',
@@ -25,11 +40,8 @@ class StirChecker:
                 'desktop': True
             }
         )
-        self.proxy = None
-        self.base_url = "https://stir.com"
-        self.api_url = "https://stir.com/reg/regapi/registration/verify"
         
-        # 设置请求头，模拟真实浏览器
+        # 设置请求头
         self.scraper.headers.update({
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
             'Accept': 'application/json, text/plain, */*',
@@ -45,9 +57,13 @@ class StirChecker:
             'sec-ch-ua-mobile': '?0',
             'sec-ch-ua-platform': '"macOS"',
         })
+        
+        # 应用当前代理
+        if self.proxy:
+            self.scraper.proxies = self.proxy
     
     def set_proxy(self, proxy: Optional[str]):
-        """设置代理"""
+        """设置单个代理"""
         if proxy:
             self.proxy = {
                 'http': proxy,
@@ -57,6 +73,59 @@ class StirChecker:
         else:
             self.proxy = None
             self.scraper.proxies = None
+    
+    def set_proxy_pool(self, proxy_list: List[str]):
+        """
+        设置代理池
+        
+        Args:
+            proxy_list: 代理地址列表，例如 ['http://127.0.0.1:7890', 'http://127.0.0.1:7891']
+        """
+        self.proxy_pool = [p.strip() for p in proxy_list if p.strip()]
+        self.current_proxy_index = 0
+        
+        # 如果有代理池，使用第一个代理
+        if self.proxy_pool:
+            self._switch_to_next_proxy()
+    
+    def _switch_to_next_proxy(self):
+        """切换到下一个代理"""
+        if not self.proxy_pool:
+            return
+        
+        # 获取下一个代理
+        proxy = self.proxy_pool[self.current_proxy_index]
+        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxy_pool)
+        
+        print(f"🔄 切换代理: {proxy} (代理池 {self.current_proxy_index}/{len(self.proxy_pool)})")
+        
+        # 重新初始化 scraper 以获取新的 session 和 token
+        self.proxy = {
+            'http': proxy,
+            'https': proxy
+        }
+        self._init_scraper()
+        
+        # 重置计数器
+        self.check_count = 0
+        
+        # 获取新的 session token
+        try:
+            init_response = self.scraper.get(
+                f"{self.base_url}/reg/registration/en-us/stir/email",
+                timeout=30
+            )
+            print(f"✅ 新 session 已建立，状态码: {init_response.status_code}")
+            time.sleep(1)
+        except Exception as e:
+            print(f"⚠️  获取新 session 失败: {e}")
+    
+    def _should_rotate_proxy(self):
+        """判断是否需要切换代理"""
+        if not self.proxy_pool or len(self.proxy_pool) <= 1:
+            return False
+        
+        return self.check_count >= self.proxy_rotation_count
     
     def test_proxy(self, proxy: str) -> bool:
         """测试代理是否可用"""
@@ -106,6 +175,11 @@ class StirChecker:
             return result
         
         try:
+            # 检查是否需要切换代理
+            if self._should_rotate_proxy():
+                print(f"\n📊 已检测 {self.check_count} 个邮箱，切换代理...")
+                self._switch_to_next_proxy()
+            
             # 步骤1: 先访问注册页面获取 cookie（绕过 Cloudflare）
             try:
                 init_response = self.scraper.get(
@@ -117,6 +191,9 @@ class StirChecker:
             except Exception as e:
                 # 如果初始访问失败，继续尝试
                 pass
+            
+            # 增加检测计数
+            self.check_count += 1
             
             # 步骤2: 使用 Stir.com 的注册验证 API
             response = self.scraper.post(
@@ -206,7 +283,7 @@ class StirChecker:
                 result['message'] = 'Cloudflare 保护无法绕过'
             else:
                 result['message'] = f'检测出错: {str(e)}'
-        
+                
         result['raw_response'] = response.text
         return result
     

@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { Layout, Card, Input, Button, Table, Space, message, Modal, Statistic, Row, Col, Tag, Divider, Tooltip } from 'antd';
-import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, SettingOutlined, DownloadOutlined, DeleteOutlined } from '@ant-design/icons';
+import { Layout, Card, Input, Button, Table, Space, message, Modal, Statistic, Row, Col, Tag, Divider, Tooltip, Upload, Tabs } from 'antd';
+import { CheckCircleOutlined, CloseCircleOutlined, LoadingOutlined, SettingOutlined, DownloadOutlined, DeleteOutlined, UploadOutlined, FileTextOutlined } from '@ant-design/icons';
 import axios from 'axios';
 import './App.css';
 
@@ -10,11 +10,15 @@ const { TextArea } = Input;
 function App() {
   const [emails, setEmails] = useState('');
   const [proxy, setProxy] = useState('');
+  const [proxyPool, setProxyPool] = useState('');  // 代理池
   const [delay, setDelay] = useState(1);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
   const [proxyModalVisible, setProxyModalVisible] = useState(false);
   const [testingProxy, setTestingProxy] = useState(false);
+  const [fileList, setFileList] = useState([]);
+  const [resultFile, setResultFile] = useState(null);
+  const [activeTab, setActiveTab] = useState('manual');
 
   // API基础地址
   const API_BASE = 'http://localhost:5001';
@@ -73,6 +77,56 @@ function App() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // 文件上传检测
+  const handleFileUpload = async (file) => {
+    setLoading(true);
+    setResults([]);
+    setResultFile(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('proxy', proxy || '');
+    formData.append('proxy_pool', proxyPool || '');  // 添加代理池
+    formData.append('delay', delay);
+
+    try {
+      const response = await axios.post(`${API_BASE}/api/upload-file`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      if (response.data.success) {
+        const data = response.data.data;
+        setResults(data.results);
+        setResultFile(data.result_file);
+        
+        message.success(
+          `检测完成！总计: ${data.total}, 已注册: ${data.registered}, 未注册: ${data.unregistered}`
+        );
+      } else {
+        message.error(response.data.error || '上传失败');
+      }
+    } catch (error) {
+      message.error('上传失败: ' + (error.response?.data?.error || error.message));
+    } finally {
+      setLoading(false);
+    }
+
+    return false; // 阻止默认上传行为
+  };
+
+  // 下载结果文件
+  const handleDownloadResult = () => {
+    if (!resultFile) {
+      message.warning('没有可下载的结果文件');
+      return;
+    }
+
+    window.open(`${API_BASE}/api/download-result/${resultFile}`, '_blank');
+    message.success('开始下载已注册邮箱列表');
   };
 
   // 测试代理
@@ -218,29 +272,70 @@ function App() {
               </Button>
             }
           >
-            <Space direction="vertical" style={{ width: '100%' }} size="large">
-              <div>
-                <div className="label">邮箱地址（每行一个）</div>
-                <TextArea
-                  rows={8}
-                  placeholder="请输入要检测的邮箱地址，每行一个&#10;例如：&#10;example1@gmail.com&#10;example2@gmail.com"
-                  value={emails}
-                  onChange={(e) => setEmails(e.target.value)}
-                  disabled={loading}
-                />
-              </div>
-              
-              <Button
-                type="primary"
-                size="large"
-                block
-                onClick={handleCheck}
-                loading={loading}
-                icon={loading ? <LoadingOutlined /> : null}
-              >
-                {loading ? '检测中...' : '开始检测'}
-              </Button>
-            </Space>
+            <Tabs activeKey={activeTab} onChange={setActiveTab}>
+              {/* 手动输入标签页 */}
+              <Tabs.TabPane tab="手动输入" key="manual">
+                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                  <div>
+                    <div className="label">邮箱地址（每行一个）</div>
+                    <TextArea
+                      rows={8}
+                      placeholder="请输入要检测的邮箱地址，每行一个&#10;例如：&#10;example1@gmail.com&#10;example2@gmail.com"
+                      value={emails}
+                      onChange={(e) => setEmails(e.target.value)}
+                      disabled={loading}
+                    />
+                  </div>
+                  
+                  <Button
+                    type="primary"
+                    size="large"
+                    block
+                    onClick={handleCheck}
+                    loading={loading}
+                    icon={loading ? <LoadingOutlined /> : null}
+                  >
+                    {loading ? '检测中...' : '开始检测'}
+                  </Button>
+                </Space>
+              </Tabs.TabPane>
+
+              {/* 文件上传标签页 */}
+              <Tabs.TabPane tab={<span><FileTextOutlined /> 文件上传</span>} key="upload">
+                <Space direction="vertical" style={{ width: '100%' }} size="large">
+                  <div>
+                    <div className="label">上传邮箱文件</div>
+                    <div style={{ marginBottom: 12, color: '#666', fontSize: 13 }}>
+                      支持格式：.txt 文件，每行一个邮箱，支持 email:password 格式
+                    </div>
+                    <Upload
+                      accept=".txt"
+                      beforeUpload={handleFileUpload}
+                      fileList={fileList}
+                      onChange={({ fileList }) => setFileList(fileList)}
+                      maxCount={1}
+                      disabled={loading}
+                    >
+                      <Button 
+                        icon={<UploadOutlined />} 
+                        disabled={loading}
+                        size="large"
+                        block
+                      >
+                        选择文件并开始检测
+                      </Button>
+                    </Upload>
+                  </div>
+
+                  {loading && (
+                    <div style={{ textAlign: 'center', padding: '20px 0' }}>
+                      <LoadingOutlined style={{ fontSize: 24, marginBottom: 12 }} />
+                      <div>正在检测中，请稍候...</div>
+                    </div>
+                  )}
+                </Space>
+              </Tabs.TabPane>
+            </Tabs>
           </Card>
 
           {/* 统计区域 */}
@@ -288,6 +383,15 @@ function App() {
                 >
                   导出CSV
                 </Button>
+                {resultFile && (
+                  <Button 
+                    type="primary"
+                    icon={<DownloadOutlined />} 
+                    onClick={handleDownloadResult}
+                  >
+                    下载已注册列表
+                  </Button>
+                )}
                 <Button 
                   icon={<DeleteOutlined />} 
                   onClick={handleClear}
@@ -330,16 +434,37 @@ function App() {
             关闭
           </Button>,
         ]}
+        width={600}
       >
         <Space direction="vertical" style={{ width: '100%' }} size="middle">
           <div>
-            <div className="label">代理地址</div>
+            <div className="label">单个代理地址</div>
             <Input
               placeholder="例如: http://127.0.0.1:7890 或 socks5://127.0.0.1:1080"
               value={proxy}
               onChange={(e) => setProxy(e.target.value)}
             />
             <div className="hint">留空表示不使用代理</div>
+          </div>
+          
+          <Divider>或</Divider>
+          
+          <div>
+            <div className="label">
+              代理池（推荐）
+              <Tooltip title="每30个邮箱自动切换代理，避免被封">
+                <span style={{ marginLeft: 8, color: '#999' }}>ℹ️</span>
+              </Tooltip>
+            </div>
+            <TextArea
+              rows={4}
+              placeholder="每行一个代理地址，例如：&#10;http://127.0.0.1:7890&#10;http://127.0.0.1:7891&#10;http://127.0.0.1:7892"
+              value={proxyPool}
+              onChange={(e) => setProxyPool(e.target.value)}
+            />
+            <div className="hint">
+              多个代理时，系统会自动轮换使用。每检测30个邮箱切换一次代理并更新token
+            </div>
           </div>
           
           <div>
@@ -351,7 +476,7 @@ function App() {
               value={delay}
               onChange={(e) => setDelay(parseFloat(e.target.value) || 0)}
             />
-            <div className="hint">批量检测时每个请求之间的延迟时间，避免请求过快</div>
+            <div className="hint">批量检测时每个请求之间的延迟时间，建议1-2秒</div>
           </div>
         </Space>
       </Modal>

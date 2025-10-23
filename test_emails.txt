@@ -1,0 +1,36 @@
+curl 'https://stir.com/reg/regapi/registration/create' \
+  -H 'accept: application/json, text/plain, */*' \
+  -H 'accept-language: zh-CN,zh;q=0.9' \
+  -H 'cache-control: no-cache' \
+  -H 'content-type: application/json' \
+  -b 'machineid=FC120416-3659-48DA-92EA-BAEB8592269D; OptanonAlertBoxClosed=2025-10-23T03:25:42.406Z; _gcl_au=1.1.2010409472.1761189943; ndp_session_id=043423fb-83c8-4b75-a805-a9eb37440d2e; _scid=9M9C9ZohaMdjaFAHDq0voPfUDnemeIUW; _ScCbts=%5B%5D; _fbp=fb.1.1761189945092.921745405902835285; _tt_enable_cookie=1; _ttp=01K87HKQSTW4DH1AJ9A041XRNC_.tt.1; machineid=FC120416-3659-48DA-92EA-BAEB8592269D; _csrf=2uAchcUkrRMJ_tWGRdeFbjvA; searchparams=%7B%22gender%22%3A1%2C%22seekingGender%22%3A2%2C%22minAge%22%3A25%2C%22maxAge%22%3A35%2C%22postalCode%22%3A%2290210%22%2C%22distance%22%3A50%2C%22isOnlineNow%22%3Afalse%2C%22certifiedOnly%22%3Afalse%2C%22availableForChat%22%3Afalse%7D; _gid=GA1.2.1713314507.1761189947; _pin_unauth=dWlkPVl6TmtNemczTTJNdE56a3hOQzAwTmpnekxXRm1PRFV0WXpjM09HRXpNak0zTnpkaw; _sctr=1%7C1761148800000; E2Pay_jwt=Bearer%2BeyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjb3JlYXBpIiwiYXVkIjoiY29yZWFwaSIsInBsYXRmb3JtSWQiOjQ5LCJzZXNzaW9uSWQiOiI0YmEwYTIzYi1jNDVhLTRhZmItYmUwYS02NGU5Mzk1ODQ3NTUiLCJzaXRlQ29kZSI6MTAsIlNlcnZlcklkIjoyMDksInZlciI6MTIsImlzc1NyYyI6MjcsImVudiI6MSwic2NvcGUiOlsxXSwiYXV0aF90aW1lIjpudWxsLCJpYXQiOjE3NjExODk5MzMsImV4cCI6MTc2MTE5MjYzMywidXJsQ29kZSI6IjE4MSJ9.ULPYOoDdLcgJOrkspZkT8w22Qtw3YnTTHE_wwLDDAuE; _ga=GA1.1.9594588.1761189944; __gads=ID=b0c8003772ef9834:T=1761189949:RT=1761190862:S=ALNI_MYRwcqAZOQ3xcUYzQWy2GLz4QOm4w; __gpi=UID=000012c12f17ebd0:T=1761189949:RT=1761190862:S=ALNI_MZPq6meeDqTVRdnjdC0BTFv8mlUhw; __eoi=ID=16f536c78c3fbc1c:T=1761189949:RT=1761190862:S=AA-AfjaQyisM7N5hGUwFPM7FvL5a; _derived_epik=dj0yJnU9LWRyclFqakEzU2czR0dNOGNKQ0dNblFDcFdGTDVTa2wmbj1tNk1FWEhGUDFZZkxXWEVUWW5pLTBRJm09MTAmdD1BQUFBQUdqNXBCWSZybT0xMCZydD1BQUFBQUdqNXBCWSZzcD0x; cto_bundle=j_OIgV9oZzVoQkQ3alhJeVNzb0VTZnhWSURxNFE0ajlIUkxIZ1NmeFFyRGtYSXFBaXNPQ3E4RlU2RTkwSXFWblZOcnhxYXdSWnR0WUVjZElsdXdlbmhBeTdvSmR4VTBWQmZVN041WHBJdnRyS2Exd2NOcTdrSHA4eVkwWkxaUlcwMSUyQlBaa2JlWnpwNWp4azNiT21KSDdQWHB1USUzRCUzRA; _ga_EZFWJJ4ZLL=GS2.2.s1761189948$o1$g1$t1761190967$j41$l0$h0; _scid_r=Ak9C9ZohaMdjaFAHDq0voPfUDnemeIUWyZU85A; _uetsid=f60812e0afbf11f0afcbbdb959998863; _uetvid=f6084820afbf11f090fa1fab694a01fe; ttcsid=1761189945148::o2R0eeN8i4n4YHk9l4Lc.1.1761191819302.0; ttcsid_C2E41EQQV140ORDILVN0=1761189945148::hq7V6FSEQ56CVi4KaOqg.1.1761191819302.0; authtoken=Bearer%20eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjb3JlYXBpIiwiYXVkIjoiY29yZWFwaSIsInBsYXRmb3JtSWQiOjkwLCJzZXNzaW9uSWQiOiIxZWVjZDAyZS0wMmY4LTQ3MzYtYmY1Yi0zNjA1NmNmY2RkZjkiLCJzaXRlQ29kZSI6MTAsIlNlcnZlcklkIjoyMDksInZlciI6MTIsImlzc1NyYyI6MjcsImVudiI6MSwic2NvcGUiOlsxXSwiYXV0aF90aW1lIjpudWxsLCJpYXQiOjE3NjEyMDI2MzgsImV4cCI6MTc2MTIwNTMzOH0.UHeYE24Uf4xFTWxcdsSsqxlw-AixaKIVq9t1YLFTIAQ; _ga_49BNHQPJDT=GS2.1.s1761202638$o2$g0$t1761202638$j60$l0$h0; OptanonConsent=isGpcEnabled=0&datestamp=Thu+Oct+23+2025+14%3A57%3A20+GMT%2B0800+(%E4%B8%AD%E5%9B%BD%E6%A0%87%E5%87%86%E6%97%B6%E9%97%B4)&version=202506.1.0&browserGpcFlag=0&isIABGlobal=false&hosts=&consentId=a6f7c1aa-b9e6-4b37-9e87-e67b2f587257&interactionCount=1&isAnonUser=1&landingPath=NotLandingPage&groups=1%3A1%2C2%3A1%2C3%3A1%2C4%3A1%2C11%3A1%2C13%3A1%2C12%3A1%2C10%3A1&intType=1&geolocation=JP%3B13&AwaitingReconsent=false; __cf_bm=zpwCZyg4aOKidiyqh3JkWrKvcDGxtd9Dbt9DFKWXCC8-1761204472-1.0.1.1-_X9LgScvk.m35ZI0VLIO1wRb8pvTxs3xjy4VX9Lq3wSbsdp5qbJLbeNYWeoyUnY3A8p0eteOrvaFik3V0U1UEPNm8sKjiqiW_wg_pcmWm_kENYDrKno9ktfzs1yHHgbi' \
+  -H 'origin: https://stir.com' \
+  -H 'pragma: no-cache' \
+  -H 'priority: u=1, i' \
+  -H 'referer: https://stir.com/reg/registration/en-us/stir/password' \
+  -H 'sec-ch-ua: "Google Chrome";v="141", "Not?A_Brand";v="8", "Chromium";v="141"' \
+  -H 'sec-ch-ua-mobile: ?0' \
+  -H 'sec-ch-ua-platform: "macOS"' \
+  -H 'sec-fetch-dest: empty' \
+  -H 'sec-fetch-mode: cors' \
+  -H 'sec-fetch-site: same-origin' \
+  -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/141.0.0.0 Safari/537.36' \
+  --data-raw '{"bannerId":0,"birthDate":{"day":11,"month":4,"year":2002},"cityCode":86650,"countryCode":1,"genderSeek":1,"password":"qwerty","postalCode":"12201","selfGender":1,"stateCode":33,"trackingId":0,"arkoseToken":"a:74518710e2235af67.1301427204|r=ap-southeast-1|meta=3|metabgclr=transparent|metaiconclr=%23757575|guitextcolor=%23000000|pk=D1632BAF-6E1B-46C9-9FCF-EC19B49A4B4F|at=40|sup=1|rid=2|ag=101|cdn_url=https%3A%2F%2Fmatch-api.arkoselabs.com%2Fcdn%2Ffc|surl=https%3A%2F%2Fmatch-api.arkoselabs.com|smurl=https%3A%2F%2Fmatch-api.arkoselabs.com%2Fcdn%2Ffc%2Fassets%2Fstyle-manager","firstName":"shen","email":"salustianomarty458@gmail.com","urlCode":181}'
+
+  {
+    "success": false,
+    "errors": [
+        {
+            "key": "email_exists",
+            "message": "Oops! This email already exists.",
+            "isVisibleToUser": true
+        }
+    ]
+}
+
+{
+    "success": true,
+    "errors": [],
+    "userId": "4z9f3e0BuSe9lR4a7eJfNg2",
+    "authToken": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJjb3JlYXBpIiwiYXVkIjoiY29yZWFwaSIsInBsYXRmb3JtSWQiOjkwLCJzZXNzaW9uSWQiOiIxZWVjZDAyZS0wMmY4LTQ3MzYtYmY1Yi0zNjA1NmNmY2RkZjkiLCJzaXRlQ29kZSI6MTAsIlNlcnZlcklkIjoyMDksInZlciI6MTIsImlzc1NyYyI6MjYsImVudiI6MSwic2NvcGUiOlsyXSwiYXV0aF90aW1lIjoxNzYxMjA0NjY5LCJpYXQiOjE3NjEyMDQ2NjksImV4cCI6MTc2MTIwNzM2OSwic3ViIjoiNHo5ZjNlMEJ1U2U5bFI0YTdlSmZOZzIiLCJ1cmxDb2RlIjoiMTgxIiwicmVnVXJsQ29kZSI6IjE4MSJ9.eiyqqdLy2zUz92uHLoqwZ3s1I91Upm3ADEfvaJ1WtxY"
+}

@@ -1,0 +1,18 @@
+# 上传文件夹
+uploads/
+
+# 结果文件夹
+results/
+
+# Python缓存
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
