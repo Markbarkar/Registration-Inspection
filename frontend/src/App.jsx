@@ -11,6 +11,7 @@ function App() {
   const [emails, setEmails] = useState('');
   const [proxy, setProxy] = useState('');
   const [proxyPool, setProxyPool] = useState('');  // 代理池
+  const [proxyRotationCount, setProxyRotationCount] = useState(30);  // 代理轮换频率
   const [delay, setDelay] = useState(1);
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState([]);
@@ -89,6 +90,7 @@ function App() {
     formData.append('file', file);
     formData.append('proxy', proxy || '');
     formData.append('proxy_pool', proxyPool || '');  // 添加代理池
+    formData.append('proxy_rotation_count', proxyRotationCount);  // 添加轮换频率
     formData.append('delay', delay);
 
     try {
@@ -452,7 +454,7 @@ function App() {
           <div>
             <div className="label">
               代理池（推荐）
-              <Tooltip title="每30个邮箱自动切换代理，避免被封">
+              <Tooltip title="多个代理自动轮换，避免被封">
                 <span style={{ marginLeft: 8, color: '#999' }}>ℹ️</span>
               </Tooltip>
             </div>
@@ -463,7 +465,28 @@ function App() {
               onChange={(e) => setProxyPool(e.target.value)}
             />
             <div className="hint">
-              多个代理时，系统会自动轮换使用。每检测30个邮箱切换一次代理并更新token
+              多个代理时，系统会自动轮换使用，并在切换时更新token
+            </div>
+          </div>
+          
+          <div>
+            <div className="label">
+              代理轮换频率
+              <Tooltip title="每检测多少个邮箱后切换到下一个代理">
+                <span style={{ marginLeft: 8, color: '#999' }}>ℹ️</span>
+              </Tooltip>
+            </div>
+            <Input
+              type="number"
+              min={1}
+              max={100}
+              value={proxyRotationCount}
+              onChange={(e) => setProxyRotationCount(parseInt(e.target.value) || 30)}
+              style={{ width: 200 }}
+              addonAfter="个邮箱"
+            />
+            <div className="hint">
+              建议设置为 20-50 之间，默认 30 个邮箱切换一次
             </div>
           </div>
           

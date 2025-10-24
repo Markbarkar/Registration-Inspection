@@ -101,6 +101,7 @@ def check_batch():
         emails = data.get('emails', [])
         proxy = data.get('proxy')
         proxy_pool = data.get('proxy_pool', [])  # 代理池
+        proxy_rotation_count = data.get('proxy_rotation_count', 30)  # 代理轮换频率
         delay = data.get('delay', 1)  # 默认延迟1秒
         
         if not emails:
@@ -109,7 +110,7 @@ def check_batch():
         # 设置代理或代理池
         if proxy_pool and len(proxy_pool) > 0:
             # 使用代理池
-            checker.set_proxy_pool(proxy_pool)
+            checker.set_proxy_pool(proxy_pool, rotation_count=proxy_rotation_count)
         elif proxy:
             # 使用单个代理
             checker.set_proxy(proxy)
@@ -176,6 +177,7 @@ def upload_file():
         # 获取其他参数
         proxy = request.form.get('proxy', '')
         proxy_pool_str = request.form.get('proxy_pool', '')
+        proxy_rotation_count = int(request.form.get('proxy_rotation_count', 30))
         delay = float(request.form.get('delay', 1))
         
         # 解析代理池（用逗号或换行分隔）
@@ -186,7 +188,7 @@ def upload_file():
         # 设置代理或代理池
         if proxy_pool and len(proxy_pool) > 0:
             # 使用代理池
-            checker.set_proxy_pool(proxy_pool)
+            checker.set_proxy_pool(proxy_pool, rotation_count=proxy_rotation_count)
         elif proxy:
             # 使用单个代理
             checker.set_proxy(proxy)

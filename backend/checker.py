@@ -74,15 +74,47 @@ class StirChecker:
             self.proxy = None
             self.scraper.proxies = None
     
-    def set_proxy_pool(self, proxy_list: List[str]):
+    def set_proxy_rotation_count(self, count: int):
+        """
+        设置代理轮换频率
+        
+        Args:
+            count: 每检测多少个邮箱后切换代理，默认30
+        """
+        if count > 0:
+            self.proxy_rotation_count = count
+            print(f"✅ 代理轮换频率已设置为: 每 {count} 个邮箱切换")
+        else:
+            print(f"⚠️  轮换频率必须大于0，保持默认值: {self.proxy_rotation_count}")
+    
+    def set_proxy_pool(self, proxy_list: List[str], rotation_count: int = None):
         """
         设置代理池
         
         Args:
             proxy_list: 代理地址列表，例如 ['http://127.0.0.1:7890', 'http://127.0.0.1:7891']
+            rotation_count: 可选，每检测多少个邮箱后切换代理，默认30
         """
         self.proxy_pool = [p.strip() for p in proxy_list if p.strip()]
         self.current_proxy_index = 0
+        
+        # 如果指定了轮换频率，更新它
+        if rotation_count is not None and rotation_count > 0:
+            self.proxy_rotation_count = rotation_count
+        
+        print("\n" + "="*70)
+        print(f"🌐 代理池配置")
+        print(f"   代理数量: {len(self.proxy_pool)}")
+        for i, proxy in enumerate(self.proxy_pool, 1):
+            # 隐藏密码部分
+            display_proxy = proxy
+            if '@' in proxy:
+                parts = proxy.split('@')
+                if len(parts) == 2:
+                    display_proxy = f"***@{parts[1]}"
+            print(f"   {i}. {display_proxy}")
+        print(f"   轮换策略: 每 {self.proxy_rotation_count} 个邮箱切换")
+        print("="*70 + "\n")
         
         # 如果有代理池，使用第一个代理
         if self.proxy_pool:
@@ -95,9 +127,23 @@ class StirChecker:
         
         # 获取下一个代理
         proxy = self.proxy_pool[self.current_proxy_index]
-        self.current_proxy_index = (self.current_proxy_index + 1) % len(self.proxy_pool)
+        next_index = (self.current_proxy_index + 1) % len(self.proxy_pool)
         
-        print(f"🔄 切换代理: {proxy} (代理池 {self.current_proxy_index}/{len(self.proxy_pool)})")
+        # 隐藏密码部分用于显示
+        display_proxy = proxy
+        if '@' in proxy:
+            parts = proxy.split('@')
+            if len(parts) == 2:
+                display_proxy = f"***@{parts[1]}"
+        
+        print("\n" + "="*70)
+        print(f"🔄 代理切换")
+        print(f"   当前代理: {display_proxy}")
+        print(f"   代理索引: {self.current_proxy_index + 1}/{len(self.proxy_pool)}")
+        print(f"   已检测数: {self.check_count} 个邮箱")
+        print("="*70)
+        
+        self.current_proxy_index = next_index
         
         # 重新初始化 scraper 以获取新的 session 和 token
         self.proxy = {
@@ -111,14 +157,23 @@ class StirChecker:
         
         # 获取新的 session token
         try:
+            print(f"🔑 正在获取新的 session token...")
             init_response = self.scraper.get(
                 f"{self.base_url}/reg/registration/en-us/stir/email",
                 timeout=30
             )
-            print(f"✅ 新 session 已建立，状态码: {init_response.status_code}")
+            cookies = self.scraper.cookies.get_dict()
+            print(f"✅ 新 session 已建立")
+            print(f"   状态码: {init_response.status_code}")
+            print(f"   Cookies: {list(cookies.keys())}")
+            if 'authtoken' in cookies:
+                token_preview = cookies['authtoken'][:50] + "..." if len(cookies['authtoken']) > 50 else cookies['authtoken']
+                print(f"   Token: {token_preview}")
+            print("="*70 + "\n")
             time.sleep(1)
         except Exception as e:
             print(f"⚠️  获取新 session 失败: {e}")
+            print("="*70 + "\n")
     
     def _should_rotate_proxy(self):
         """判断是否需要切换代理"""
@@ -177,8 +232,18 @@ class StirChecker:
         try:
             # 检查是否需要切换代理
             if self._should_rotate_proxy():
-                print(f"\n📊 已检测 {self.check_count} 个邮箱，切换代理...")
+                print(f"\n📊 已检测 {self.check_count} 个邮箱，达到切换阈值，准备切换代理...")
                 self._switch_to_next_proxy()
+            
+            # 增加检测计数
+            self.check_count += 1
+            
+            # 显示当前检测进度
+            if self.proxy_pool:
+                proxy_info = f"代理 {self.current_proxy_index}/{len(self.proxy_pool)}"
+            else:
+                proxy_info = "直连"
+            print(f"[{self.check_count}] 检测 {email} ({proxy_info})", end=" ")
             
             # 步骤1: 先访问注册页面获取 cookie（绕过 Cloudflare）
             try:
@@ -191,9 +256,6 @@ class StirChecker:
             except Exception as e:
                 # 如果初始访问失败，继续尝试
                 pass
-            
-            # 增加检测计数
-            self.check_count += 1
             
             # 步骤2: 使用 Stir.com 的注册验证 API
             response = self.scraper.post(
@@ -242,8 +304,14 @@ class StirChecker:
                             result['registered'] = False
                             result['message'] = '邮箱未注册'
                         result['status'] = 'success'
+                    
+                    # 输出检测结果
+                    status_icon = "🔴" if result['registered'] else "🟢"
+                    print(f"-> {status_icon} {result['message']}")
+                    
                 except Exception as e:
                     result['message'] = f'解析响应失败: {str(e)}'
+                    print(f"-> ❌ {result['message']}")
                     
             elif response.status_code == 400:
                 # 400 通常表示邮箱已存在或验证失败
@@ -257,21 +325,27 @@ class StirChecker:
                         result['registered'] = False
                         result['message'] = data.get('message', '验证失败')
                     result['status'] = 'success'
+                    status_icon = "🔴" if result['registered'] else "🟢"
+                    print(f"-> {status_icon} {result['message']}")
                 except:
                     result['message'] = f'检测失败: HTTP {response.status_code}'
+                    print(f"-> ❌ {result['message']}")
                     
             elif response.status_code == 409:
                 # 409 Conflict 通常表示邮箱已存在
                 result['registered'] = True
                 result['message'] = '邮箱已注册'
                 result['status'] = 'success'
+                print(f"-> 🔴 {result['message']}")
                 
             elif response.status_code == 403:
                 # Cloudflare 保护
                 result['message'] = 'Cloudflare 保护阻止访问，请稍后重试或使用代理'
+                print(f"-> ⚠️  {result['message']}")
                 
             else:
                 result['message'] = f'检测失败: HTTP {response.status_code}'
+                print(f"-> ❌ {result['message']}")
         
         except Exception as e:
             error_str = str(e).lower()
@@ -283,6 +357,7 @@ class StirChecker:
                 result['message'] = 'Cloudflare 保护无法绕过'
             else:
                 result['message'] = f'检测出错: {str(e)}'
+            print(f"-> ❌ {result['message']}")
                 
         result['raw_response'] = response.text
         return result
