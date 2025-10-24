@@ -267,8 +267,14 @@ function App() {
             className="input-card"
             extra={
               <Button 
+                type="default"
                 icon={<SettingOutlined />} 
                 onClick={() => setProxyModalVisible(true)}
+                style={{ 
+                  backgroundColor: '#fff',
+                  color: '#1890ff',
+                  borderColor: '#1890ff'
+                }}
               >
                 代理设置
               </Button>
