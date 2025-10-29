@@ -6,8 +6,31 @@ from flask import send_from_directory
 import os
 import sys
 
+# 处理打包环境的路径问题
+if getattr(sys, 'frozen', False):
+    # 打包后的环境
+    application_path = sys._MEIPASS
+    # 将打包后的根目录添加到 Python 路径
+    if application_path not in sys.path:
+        sys.path.insert(0, application_path)
+else:
+    # 开发环境
+    application_path = os.path.dirname(os.path.abspath(__file__))
+    if application_path not in sys.path:
+        sys.path.insert(0, application_path)
+
 # 导入原有的 app
-from app import app, checker
+try:
+    from app import app, checker
+except ImportError as e:
+    print(f"导入失败: {e}")
+    print(f"当前路径: {os.getcwd()}")
+    print(f"sys.path: {sys.path}")
+    print(f"application_path: {application_path}")
+    # 列出可用的模块
+    if hasattr(sys, '_MEIPASS'):
+        print(f"打包目录内容: {os.listdir(sys._MEIPASS)}")
+    raise
 
 # 获取资源路径（支持打包后的路径）
 def get_resource_path(relative_path):
@@ -22,15 +45,16 @@ def get_resource_path(relative_path):
 # 前端静态文件路径
 FRONTEND_DIST = get_resource_path('frontend_dist')
 
-# 添加前端路由（必须在最后，避免覆盖API路由）
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-def serve_frontend(path):
+# 直接覆盖 serve_frontend 视图函数,不修改路由
+def serve_frontend_standalone(path=''):
     """提供前端静态文件"""
-    if path != "" and os.path.exists(os.path.join(FRONTEND_DIST, path)):
+    if path and path != "" and os.path.exists(os.path.join(FRONTEND_DIST, path)):
         return send_from_directory(FRONTEND_DIST, path)
     else:
         return send_from_directory(FRONTEND_DIST, 'index.html')
+
+# 替换原有的 serve_frontend 函数
+app.view_functions['serve_frontend'] = serve_frontend_standalone
 
 if __name__ == '__main__':
     print("=" * 50)

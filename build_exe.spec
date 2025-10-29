@@ -7,8 +7,8 @@ PyInstaller 打包配置文件
 block_cipher = None
 
 a = Analysis(
-    ['backend/app_standalone.py'],
-    pathex=[],
+    ['backend/app_standalone.py', 'backend/app.py', 'backend/checker.py'],  # 直接分析这些文件
+    pathex=['backend'],  # 添加 backend 目录到搜索路径
     binaries=[],
     datas=[
         ('frontend/dist', 'frontend_dist'),  # 包含前端构建文件
