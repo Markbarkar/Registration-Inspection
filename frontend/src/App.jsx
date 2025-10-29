@@ -21,8 +21,8 @@ function App() {
   const [resultFile, setResultFile] = useState(null);
   const [activeTab, setActiveTab] = useState('manual');
 
-  // API基础地址
-  const API_BASE = 'http://localhost:5001';
+  // API基础地址 - 从 window 对象获取动态注入的端口
+  const API_BASE = window.API_BASE_URL || 'http://localhost:5001';
 
   // 统计数据
   const stats = {
